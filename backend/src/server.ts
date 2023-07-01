@@ -14,10 +14,10 @@ const app = express();
 app.use(morgan("dev"));
 app.use(express.json());
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/api/v1", (req: Request, res: Response) => {
 	res.send("Vegan-Vita API");
 });
-app.use("/api/users", userRoutes);
+app.use("/api/v1/users", userRoutes);
 
 const PORT = process.env.PORT ?? 5000;
 app.listen(PORT, () => console.log(`Server running on port ${PORT}`.yellow));

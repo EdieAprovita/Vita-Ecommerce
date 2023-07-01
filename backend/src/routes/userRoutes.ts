@@ -14,14 +14,21 @@ import { protect, admin } from "../middleware/authMiddleware";
 
 const router = express.Router();
 
-router.route("/").post(registerUser).get(protect, admin, getUsers);
-router.post("/login", authUser);
-router.get("/logout", logoutUser);
-router.route("/profile").get(protect, getUserProfile).put(protect, updateUserProfile);
-router
-	.route("/:id")
-	.delete(protect, admin, deleteUser)
-	.get(protect, admin, getUserById)
-	.put(protect, admin, updateUser);
+// Authentication Routes
+router.post("/auth/login", authUser);
+router.get("/auth/logout", logoutUser);
+
+// Registration Route
+router.post("/register", registerUser);
+
+// User Profile Routes
+router.get("/profile", protect, getUserProfile);
+router.put("/profile", protect, updateUserProfile);
+
+// Admin Routes
+router.get("/admin/users", protect, admin, getUsers);
+router.delete("/admin/users/:id", protect, admin, deleteUser);
+router.get("/admin/users/:id", protect, admin, getUserById);
+router.put("/admin/users/:id", protect, admin, updateUser);
 
 export default router;
