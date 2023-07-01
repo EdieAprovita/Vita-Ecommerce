@@ -14,7 +14,7 @@ const userSchema = new Schema<IUser>(
 			required: [true, "Please provide an email".bg_cyan],
 			unique: true,
 			match: [
-				/^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/,
+				/^([\w-.]+@([\w-]+\.)+[\w-]{2,4})?$/,
 				"Please provide a valid email".bg_cyan,
 			],
 		},

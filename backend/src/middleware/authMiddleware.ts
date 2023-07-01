@@ -31,3 +31,14 @@ const protect = expressAsyncHandler(
 		}
 	}
 );
+
+const admin = (req: Request, res: Response, next: NextFunction) => {
+	if (req.user?.isAdmin) {
+		next();
+	} else {
+		res.status(401);
+		throw new Error("Not authorized as an admin");
+	}
+};
+
+export { protect, admin };
