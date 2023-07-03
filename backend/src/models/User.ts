@@ -1,3 +1,4 @@
+import { format } from "date-fns";
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import { IUser } from "../interfaces/IModels";
@@ -31,6 +32,13 @@ const userSchema = new Schema<IUser>(
 	},
 	{
 		timestamps: true,
+		toJSON: {
+			transform(doc, ret) {
+				ret.createdAt = format(ret.createdAt, "yyyy-MM-dd HH:mm:ss");
+				ret.updatedAt = format(ret.updatedAt, "yyyy-MM-dd HH:mm:ss");
+				return ret;
+			},
+		},
 	}
 );
 

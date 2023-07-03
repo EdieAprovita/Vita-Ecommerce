@@ -14,7 +14,6 @@ const protect = asyncHandler(async (req: Request, res: Response, next: NextFunct
 				throw new Error("JWT_SECRET is not defined");
 			}
 			const decoded = jwt.verify(token, secret) as jwt.JwtPayload;
-			console.log(decoded);
 			const user = await User.findById(decoded.userId).select("-password");
 			if (!user) {
 				throw new Error("User not found");
