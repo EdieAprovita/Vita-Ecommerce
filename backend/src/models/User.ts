@@ -4,7 +4,7 @@ import { IUser } from "../interfaces/IModels";
 
 const userSchema = new Schema<IUser>(
 	{
-		name: {
+		username: {
 			type: String,
 			required: [true, "Please provide a name".bg_cyan],
 			unique: true,
@@ -22,7 +22,6 @@ const userSchema = new Schema<IUser>(
 			type: String,
 			required: [true, "Please provide a password".bg_cyan],
 			minlength: 6,
-			select: false,
 		},
 		isAdmin: {
 			type: Boolean,

@@ -15,12 +15,22 @@ const authUser = asyncHandler(async (req: Request, res: Response) => {
 	try {
 		const user = await User.findOne({ email });
 
-		if (user?.matchPassword(password)) {
-			generateToken(res, user._id.toString());
+		if (!user) {
+			res.status(401);
+			throw new Error("User not found");
+		}
 
-			res.json({
+		if (!user.password) {
+			res.status(500);
+			throw new Error("User password not set in the database");
+		}
+
+		if (user && (await user.matchPassword(password))) {
+			generateToken(res, user._id);
+
+			res.status(200).json({
 				_id: user._id,
-				name: user.name,
+				username: user.username,
 				email: user.email,
 				isAdmin: user.isAdmin,
 			});
@@ -39,7 +49,7 @@ const authUser = asyncHandler(async (req: Request, res: Response) => {
 // @access  Public
 
 const registerUser = asyncHandler(async (req: Request, res: Response) => {
-	const { name, email, password } = req.body;
+	const { username, email, password } = req.body;
 
 	const userExists = await User.findOne({ email });
 
@@ -49,17 +59,17 @@ const registerUser = asyncHandler(async (req: Request, res: Response) => {
 	}
 
 	const user = await User.create({
-		name,
+		username,
 		email,
 		password,
 	});
 
 	if (user) {
-		generateToken(res, user._id.toString());
+		generateToken(res, user._id);
 
 		res.status(201).json({
 			_id: user._id,
-			name: user.name,
+			username: user.username,
 			email: user.email,
 			isAdmin: user.isAdmin,
 		});
@@ -87,27 +97,18 @@ const logoutUser = asyncHandler(async (req: Request, res: Response) => {
 // @access  Private
 
 const getUserProfile = asyncHandler(async (req: Request, res: Response) => {
-	if (req.user) {
-		User.findById(req.user._id)
-			.then(user => {
-				if (user) {
-					res.json({
-						_id: user._id,
-						name: user.name,
-						email: user.email,
-						isAdmin: user.isAdmin,
-					});
-				} else {
-					res.status(404);
-					throw new Error("User not found");
-				}
-			})
-			.catch(err => {
-				res.status(500).send(err);
-			});
+	const user = await User.findById(req.user?._id);
+
+	if (user) {
+		res.status(200).json({
+			_id: user._id,
+			username: user.username,
+			email: user.email,
+			isAdmin: user.isAdmin,
+		});
 	} else {
-		res.status(401);
-		throw new Error("Not authorized, no user found");
+		res.status(404);
+		throw new Error("User not found");
 	}
 });
 
@@ -120,7 +121,7 @@ const updateUserProfile = asyncHandler(async (req: Request, res: Response) => {
 		User.findById(req.user._id)
 			.then(user => {
 				if (user) {
-					user.name = req.body.name || user.name;
+					user.username = req.body.username || user.username;
 					user.email = req.body.email || user.email;
 
 					if (req.body.password) {
@@ -130,9 +131,9 @@ const updateUserProfile = asyncHandler(async (req: Request, res: Response) => {
 					user
 						.save()
 						.then(updatedUser => {
-							res.json({
+							res.status(200).json({
 								_id: updatedUser._id,
-								name: updatedUser.name,
+								username: updatedUser.username,
 								email: updatedUser.email,
 								isAdmin: updatedUser.isAdmin,
 							});
@@ -157,7 +158,7 @@ const updateUserProfile = asyncHandler(async (req: Request, res: Response) => {
 
 const getUsers = asyncHandler(async (req: Request, res: Response) => {
 	const users = await User.find({});
-	res.json(users);
+	res.status(200).json(users);
 });
 
 // @desc    Delete user
@@ -188,7 +189,7 @@ const getUserById = asyncHandler(async (req: Request, res: Response) => {
 	const user = await User.findById(req.params.id).select("-password");
 
 	if (user) {
-		res.json(user);
+		res.status(200).json(user);
 	} else {
 		res.status(404);
 		throw new Error("User not found");
@@ -203,15 +204,15 @@ const updateUser = asyncHandler(async (req: Request, res: Response) => {
 	const user = await User.findById(req.params.id);
 
 	if (user) {
-		user.name = req.body.name || user.name;
+		user.username = req.body.username || user.username;
 		user.email = req.body.email || user.email;
 		user.isAdmin = Boolean(req.body.isAdmin);
 
 		const updatedUser = await user.save();
 
-		res.json({
+		res.status(200).json({
 			_id: updatedUser._id,
-			name: updatedUser.name,
+			username: updatedUser.username,
 			email: updatedUser.email,
 			isAdmin: updatedUser.isAdmin,
 		});

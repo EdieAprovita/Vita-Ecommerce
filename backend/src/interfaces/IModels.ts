@@ -1,13 +1,13 @@
 import { Request as ExpressRequest } from "express";
-import { Document } from "mongoose";
+import { Document, ObjectId } from "mongoose";
 
 export interface Request extends ExpressRequest {
 	user?: IUser;
 }
 
 export interface IUser extends Document {
-	_id: number;
-	name: string;
+	_id: ObjectId;
+	username: string;
 	email: string;
 	password: string;
 	isAdmin: boolean;
