@@ -5,6 +5,7 @@ import { IUser } from "../interfaces/IModels";
 
 const userSchema = new Schema<IUser>(
 	{
+		_id: Schema.Types.ObjectId,
 		username: {
 			type: String,
 			required: [true, "Please provide a name".bg_cyan],

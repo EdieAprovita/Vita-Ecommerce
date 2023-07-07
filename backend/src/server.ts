@@ -9,6 +9,7 @@ import { notFound, errorHandler } from "./middleware/errorMiddleware";
 
 import connectDB from "./config/db";
 import userRoutes from "./routes/userRoutes";
+import productsRoutes from "./routes/productRoutes";
 
 const PORT = process.env.PORT ?? 5000;
 
@@ -22,6 +23,7 @@ app.use(cookieParser());
 app.use(express.json());
 
 app.use("/api/v1/users", userRoutes);
+app.use("/api/v1/products", productsRoutes);
 
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 

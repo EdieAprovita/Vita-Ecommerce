@@ -23,12 +23,12 @@ router.post("/register", registerUser);
 
 // User Profile Routes
 router.get("/profile", protect, getUserProfile);
-router.put("/profile", protect, updateUserProfile);
+router.put("/profile/update", protect, updateUserProfile);
 
 // Admin Routes
 router.get("/admin/users", protect, admin, getUsers);
-router.delete("/admin/users/:id", protect, admin, deleteUser);
+router.delete("/admin/users/delete/:id", protect, admin, deleteUser);
 router.get("/admin/users/:id", protect, admin, getUserById);
-router.put("/admin/users/:id", protect, admin, updateUser);
+router.put("/admin/users/update/:id", protect, admin, updateUser);
 
 export default router;
