@@ -1,6 +1,6 @@
 import asyncHandler from "../middleware/asyncHandler";
 import { Response } from "express";
-import { ObjectId, Types } from "mongoose";
+import { ObjectId } from "mongoose";
 import { IReview, Request } from "../interfaces/IModels";
 
 import Product from "../models/Product";

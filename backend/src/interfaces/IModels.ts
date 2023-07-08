@@ -1,5 +1,5 @@
 import { Request as ExpressRequest } from "express";
-import { Document, ObjectId, Types } from "mongoose";
+import { Document, ObjectId, Schema } from "mongoose";
 
 export interface Request extends ExpressRequest {
 	user?: IUser;
@@ -32,7 +32,7 @@ export interface IReview {
 
 export interface IProduct {
 	user: {
-		type: ObjectId;
+		type: Schema.Types.ObjectId;
 		ref: string;
 	};
 	name: string;
@@ -45,6 +45,50 @@ export interface IProduct {
 	numReviews: number;
 	price: number;
 	countInStock: number;
+	timeStamp: {
+		createdAt: Date;
+		updatedAt: Date;
+	};
+}
+
+export interface IOrder {
+	user: {
+		type: Schema.Types.ObjectId;
+		ref: string;
+	};
+	orderItems: [
+		{
+			name: string;
+			qty: number;
+			image: string;
+			price: number;
+			product: {
+				type: Schema.Types.ObjectId;
+				ref: string;
+			};
+		}
+	];
+	shippingAddress: {
+		address: string;
+		city: string;
+		postalCode: string;
+		country: string;
+	};
+	paymentMethod: string;
+	paymentResult: {
+		id: string;
+		status: string;
+		update_time: string;
+		email_address: string;
+	};
+	itemsPrice: number;
+	taxPrice: number;
+	shippingPrice: number;
+	totalPrice: number;
+	isPaid: boolean;
+	paidAt: Date;
+	isDelivered: boolean;
+	deliveredAt: Date;
 	timeStamp: {
 		createdAt: Date;
 		updatedAt: Date;

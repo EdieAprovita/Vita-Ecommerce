@@ -10,6 +10,7 @@ import { notFound, errorHandler } from "./middleware/errorMiddleware";
 import connectDB from "./config/db";
 import userRoutes from "./routes/userRoutes";
 import productsRoutes from "./routes/productRoutes";
+import orderRoutes from "./routes/orderRoutes";
 
 const PORT = process.env.PORT ?? 5000;
 
@@ -24,6 +25,7 @@ app.use(express.json());
 
 app.use("/api/v1/users", userRoutes);
 app.use("/api/v1/products", productsRoutes);
+app.use("/api/v1/orders", orderRoutes);
 
 app.use("/uploads", express.static(path.join(__dirname, "/uploads")));
 
