@@ -5,6 +5,11 @@ import { Types } from "mongoose";
 
 import Order from "../models/Order";
 
+const orderNotFoundError = (res: Response) => {
+	res.status(404);
+	throw new Error("Order not found");
+};
+
 // @desc Create new order
 // @route POST /api/orders
 // @access Private
@@ -20,31 +25,53 @@ const addOrderItems = asyncHandler(async (req: Request, res: Response) => {
 		totalPrice,
 	} = req.body;
 
-	if (!orderItems && orderItems.length === 0) {
+	if (!req.user?._id) {
+		res.status(401);
+		throw new Error("Not authorized, no user found");
+	}
+
+	if (!orderItems || orderItems.length === 0) {
 		res.status(400);
 		throw new Error("No order items");
-	} else {
-		const mappedOrderItems: IOrder["orderItems"] = orderItems.map(
-			(item: Types.ObjectId) => ({
-				product: item,
-			})
-		);
-
-		const order = new Order({
-			orderItems: mappedOrderItems,
-			user: req.user?._id,
-			shippingAddress,
-			paymentMethod,
-			itemsPrice,
-			taxPrice,
-			shippingPrice,
-			totalPrice,
-		});
-
-		const createdOrder = await order.save();
-
-		res.status(201).json(createdOrder);
 	}
+
+	if (
+		!shippingAddress ||
+		!paymentMethod ||
+		!itemsPrice ||
+		!shippingPrice ||
+		!taxPrice ||
+		!totalPrice
+	) {
+		res.status(400);
+		throw new Error("Missing order data");
+	}
+
+	const mappedOrderItems: IOrder["orderItems"] = orderItems.map(
+		(item: Types.ObjectId) => ({
+			product: item,
+		})
+	);
+
+	const order = new Order({
+		orderItems: mappedOrderItems,
+		user: req.user._id,
+		shippingAddress,
+		paymentMethod,
+		itemsPrice,
+		taxPrice,
+		shippingPrice,
+		totalPrice,
+	});
+
+	const createdOrder = await order.save();
+
+	if (!createdOrder) {
+		res.status(500);
+		throw new Error("Failed to create order");
+	}
+
+	res.status(201).json(createdOrder);
 });
 
 // @desc Get logged in user orders
@@ -53,6 +80,9 @@ const addOrderItems = asyncHandler(async (req: Request, res: Response) => {
 
 const getMyOrders = asyncHandler(async (req: Request, res: Response) => {
 	const orders = await Order.find({ user: req.user?._id });
+	if (!orders) {
+		orderNotFoundError(res);
+	}
 	res.json(orders);
 });
 
@@ -62,13 +92,7 @@ const getMyOrders = asyncHandler(async (req: Request, res: Response) => {
 
 const getOrderById = asyncHandler(async (req: Request, res: Response) => {
 	const order = await Order.findById(req.params.id).populate("user", "name email");
-
-	if (order) {
-		res.status(200).json(order);
-	} else {
-		res.status(404);
-		throw new Error("Order not found");
-	}
+	order ? res.status(200).json(order) : orderNotFoundError(res);
 });
 
 // @desc Update order to paid
@@ -76,25 +100,23 @@ const getOrderById = asyncHandler(async (req: Request, res: Response) => {
 // @access Private
 
 const updateOrderToPaid = asyncHandler(async (req: Request, res: Response) => {
-	const order = await Order.findById(req.params.id);
-
-	if (order) {
-		order.isPaid = true;
-		order.paidAt = new Date();
-		order.paymentResult = {
-			id: req.body.id,
-			status: req.body.status,
-			update_time: req.body.update_time,
-			email_address: req.body.payer.email_address,
-		};
-
-		const updatedOrder = await order.save();
-
-		res.status(200).json(updatedOrder);
-	} else {
-		res.status(404);
-		throw new Error("Order not found");
-	}
+	const order = await Order.findOneAndUpdate(
+		{ _id: req.params.id },
+		{
+			$set: {
+				isPaid: true,
+				paidAt: new Date(),
+				paymentResult: {
+					id: req.body.id,
+					status: req.body.status,
+					update_time: req.body.update_time,
+					email_address: req.body.payer.email_address,
+				},
+			},
+		},
+		{ new: true }
+	);
+	order ? res.status(200).json(order) : orderNotFoundError(res);
 });
 
 // @desc Update order to delivered
@@ -102,19 +124,17 @@ const updateOrderToPaid = asyncHandler(async (req: Request, res: Response) => {
 // @access Private/Admin
 
 const updateOrderToDelivered = asyncHandler(async (req: Request, res: Response) => {
-	const order = await Order.findById(req.params.id);
-
-	if (order) {
-		order.isDelivered = true;
-		order.deliveredAt = new Date();
-
-		const updatedOrder = await order.save();
-
-		res.status(200).json(updatedOrder);
-	} else {
-		res.status(404);
-		throw new Error("Order not found");
-	}
+	const order = await Order.findOneAndUpdate(
+		{ _id: req.params.id },
+		{
+			$set: {
+				isDelivered: true,
+				deliveredAt: new Date(),
+			},
+		},
+		{ new: true }
+	);
+	order ? res.status(200).json(order) : orderNotFoundError(res);
 });
 
 // @desc Get all orders
@@ -123,6 +143,9 @@ const updateOrderToDelivered = asyncHandler(async (req: Request, res: Response) 
 
 const getOrders = asyncHandler(async (req: Request, res: Response) => {
 	const orders = await Order.find({}).populate("user", "id name");
+	if (!orders) {
+		orderNotFoundError(res);
+	}
 	res.status(200).json(orders);
 });
 
