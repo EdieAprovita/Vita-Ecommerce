@@ -1,10 +1,12 @@
+import { format } from "date-fns";
 import mongoose, { Schema } from "mongoose";
 import bcrypt from "bcryptjs";
 import { IUser } from "../interfaces/IModels";
 
 const userSchema = new Schema<IUser>(
 	{
-		name: {
+		_id: Schema.Types.ObjectId,
+		username: {
 			type: String,
 			required: [true, "Please provide a name".bg_cyan],
 			unique: true,
@@ -14,7 +16,7 @@ const userSchema = new Schema<IUser>(
 			required: [true, "Please provide an email".bg_cyan],
 			unique: true,
 			match: [
-				/^([\w-\.]+@([\w-]+\.)+[\w-]{2,4})?$/,
+				/^([\w-.]+@([\w-]+\.)+[\w-]{2,4})?$/,
 				"Please provide a valid email".bg_cyan,
 			],
 		},
@@ -22,7 +24,6 @@ const userSchema = new Schema<IUser>(
 			type: String,
 			required: [true, "Please provide a password".bg_cyan],
 			minlength: 6,
-			select: false,
 		},
 		isAdmin: {
 			type: Boolean,
@@ -32,6 +33,13 @@ const userSchema = new Schema<IUser>(
 	},
 	{
 		timestamps: true,
+		toJSON: {
+			transform(doc, ret) {
+				ret.createdAt = format(ret.createdAt, "yyyy-MM-dd HH:mm:ss");
+				ret.updatedAt = format(ret.updatedAt, "yyyy-MM-dd HH:mm:ss");
+				return ret;
+			},
+		},
 	}
 );
 
